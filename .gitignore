@@ -1,0 +1,9 @@
+
+# Folder
+.kiro/
+node_modules/
+postman/
+
+# File
+PRD_Product_day4_revised.md
+package-lock.json

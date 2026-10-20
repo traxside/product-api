@@ -1,0 +1,378 @@
+// Swagger specification — defined manually as an ESM module.
+// Imported by index.js and served via swagger-ui-express at /api-docs.
+
+const swaggerSpec = {
+  openapi: '3.0.0',
+  info: {
+    title: 'Product API',
+    version: '1.0.0',
+    description: 'E-Commerce Catalog REST API Service — Full CRUD with in-memory data store'
+  },
+  paths: {
+
+    // -------------------------------------------------------------------------
+    // /api/products
+    // -------------------------------------------------------------------------
+
+    '/api/products': {
+
+      // GET /api/products
+      get: {
+        tags: ['Products'],
+        summary: 'Get all products',
+        description: 'Returns a list of all products currently stored in memory.',
+        responses: {
+          200: {
+            description: 'Successfully retrieved all products',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'array',
+                  items: { $ref: '#/components/schemas/Product' }
+                },
+                example: [
+                  {
+                    id: 1,
+                    name: 'Nama Product',
+                    price: 150000,
+                    image: 'https://placehold.co/600x400/png',
+                    variants: [
+                      { colorOrSize: 'S', quantity: 10 },
+                      { colorOrSize: 'M', quantity: 10 },
+                      { colorOrSize: 'L', quantity: 10 }
+                    ],
+                    description: 'Deskripsi singkat product...'
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+
+      // POST /api/products
+      post: {
+        tags: ['Products'],
+        summary: 'Create a new product',
+        description: 'Adds a new product to the in-memory store. An `id` is assigned automatically.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/ProductInput' },
+              example: {
+                name: 'Product Baru',
+                price: 200000,
+                image: 'https://placehold.co/600x400/png',
+                variants: [{ colorOrSize: 'M', quantity: 5 }],
+                description: 'Deskripsi product baru...'
+              }
+            }
+          }
+        },
+        responses: {
+          201: {
+            description: 'Product created successfully',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Product' },
+                example: {
+                  id: 3,
+                  name: 'Product Baru',
+                  price: 200000,
+                  image: 'https://placehold.co/600x400/png',
+                  variants: [{ colorOrSize: 'M', quantity: 5 }],
+                  description: 'Deskripsi product baru...'
+                }
+              }
+            }
+          },
+          400: {
+            description: 'Missing required fields',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                example: {
+                  error: "Fields 'name', 'price', 'image', 'variants', 'description' are required"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    // -------------------------------------------------------------------------
+    // /api/products/{id}
+    // -------------------------------------------------------------------------
+
+    '/api/products/{id}': {
+
+      // GET /api/products/:id
+      get: {
+        tags: ['Products'],
+        summary: 'Get a product by ID',
+        description: 'Returns a single product matching the given ID.',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            description: 'Numeric ID of the product to retrieve',
+            schema: { type: 'integer', example: 1 }
+          }
+        ],
+        responses: {
+          200: {
+            description: 'Product found',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Product' },
+                example: {
+                  id: 1,
+                  name: 'Nama Product',
+                  price: 150000,
+                  image: 'https://placehold.co/600x400/png',
+                  variants: [
+                    { colorOrSize: 'S', quantity: 10 },
+                    { colorOrSize: 'M', quantity: 10 },
+                    { colorOrSize: 'L', quantity: 10 }
+                  ],
+                  description: 'Deskripsi singkat product...'
+                }
+              }
+            }
+          },
+          404: {
+            description: 'Product not found',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                example: { error: 'Product with id 99 not found' }
+              }
+            }
+          }
+        }
+      },
+
+      // PUT /api/products/:id
+      put: {
+        tags: ['Products'],
+        summary: 'Update a product by ID',
+        description: 'Partially updates an existing product. Only the fields provided in the request body will be updated — all other fields remain unchanged.',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            description: 'Numeric ID of the product to update',
+            schema: { type: 'integer', example: 1 }
+          }
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/ProductInput' },
+              example: {
+                price: 175000,
+                description: 'Deskripsi yang sudah diperbarui.'
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Product updated successfully',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Product' },
+                example: {
+                  id: 1,
+                  name: 'Nama Product',
+                  price: 175000,
+                  image: 'https://placehold.co/600x400/png',
+                  variants: [
+                    { colorOrSize: 'S', quantity: 10 },
+                    { colorOrSize: 'M', quantity: 10 },
+                    { colorOrSize: 'L', quantity: 10 }
+                  ],
+                  description: 'Deskripsi yang sudah diperbarui.'
+                }
+              }
+            }
+          },
+          400: {
+            description: 'Request body cannot be empty',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                example: { error: 'Request body cannot be empty' }
+              }
+            }
+          },
+          404: {
+            description: 'Product not found',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                example: { error: 'Product with id 99 not found' }
+              }
+            }
+          }
+        }
+      },
+
+      // DELETE /api/products/:id
+      delete: {
+        tags: ['Products'],
+        summary: 'Delete a product by ID',
+        description: 'Removes a product from the in-memory store permanently. Data will be restored on server restart.',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            description: 'Numeric ID of the product to delete',
+            schema: { type: 'integer', example: 1 }
+          }
+        ],
+        responses: {
+          200: {
+            description: 'Product deleted successfully',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/SuccessMessage' },
+                example: { message: 'Product with id 1 has been deleted' }
+              }
+            }
+          },
+          404: {
+            description: 'Product not found',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                example: { error: 'Product with id 99 not found' }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  // ---------------------------------------------------------------------------
+  // Reusable schemas
+  // ---------------------------------------------------------------------------
+
+  components: {
+    schemas: {
+
+      // Full product object (includes auto-generated id)
+      Product: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'integer',
+            description: 'Auto-assigned unique product identifier',
+            example: 1
+          },
+          name: {
+            type: 'string',
+            description: 'Product name',
+            example: 'Nama Product'
+          },
+          price: {
+            type: 'number',
+            description: 'Product price in IDR',
+            example: 150000
+          },
+          image: {
+            type: 'string',
+            description: 'URL of the product image',
+            example: 'https://placehold.co/600x400/png'
+          },
+          variants: {
+            type: 'array',
+            description: 'Available size/color variants with stock quantity',
+            items: { $ref: '#/components/schemas/Variant' }
+          },
+          description: {
+            type: 'string',
+            description: 'Short product description',
+            example: 'Deskripsi singkat product...'
+          }
+        }
+      },
+
+      // Input schema for POST and PUT (id is excluded — assigned automatically)
+      ProductInput: {
+        type: 'object',
+        required: ['name', 'price', 'image', 'variants', 'description'],
+        properties: {
+          name: {
+            type: 'string',
+            example: 'Nama Product'
+          },
+          price: {
+            type: 'number',
+            example: 150000
+          },
+          image: {
+            type: 'string',
+            example: 'https://placehold.co/600x400/png'
+          },
+          variants: {
+            type: 'array',
+            items: { $ref: '#/components/schemas/Variant' }
+          },
+          description: {
+            type: 'string',
+            example: 'Deskripsi singkat product...'
+          }
+        }
+      },
+
+      // Single variant object
+      Variant: {
+        type: 'object',
+        properties: {
+          colorOrSize: {
+            type: 'string',
+            description: 'Size label (e.g. S, M, L) or color name',
+            example: 'M'
+          },
+          quantity: {
+            type: 'integer',
+            description: 'Stock quantity for this variant',
+            example: 10
+          }
+        }
+      },
+
+      // Standard error response
+      ErrorResponse: {
+        type: 'object',
+        properties: {
+          error: {
+            type: 'string',
+            example: 'Product with id 99 not found'
+          }
+        }
+      },
+
+      // Standard success message response
+      SuccessMessage: {
+        type: 'object',
+        properties: {
+          message: {
+            type: 'string',
+            example: 'Product with id 1 has been deleted'
+          }
+        }
+      }
+    }
+  }
+};
+
+export default swaggerSpec;
