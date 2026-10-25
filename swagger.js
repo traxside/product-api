@@ -6,7 +6,7 @@ const swaggerSpec = {
   info: {
     title: 'Product API',
     version: '1.0.0',
-    description: 'E-Commerce Catalog REST API Service — Full CRUD with in-memory data store'
+    description: 'E-Commerce Catalog REST API Service — Full CRUD with MySQL database'
   },
   paths: {
 
@@ -20,7 +20,7 @@ const swaggerSpec = {
       get: {
         tags: ['Products'],
         summary: 'Get all products',
-        description: 'Returns a list of all products currently stored in memory.',
+        description: 'Returns a list of all products stored in MySQL.',
         responses: {
           200: {
             description: 'Successfully retrieved all products',
@@ -54,7 +54,7 @@ const swaggerSpec = {
       post: {
         tags: ['Products'],
         summary: 'Create a new product',
-        description: 'Adds a new product to the in-memory store. An `id` is assigned automatically.',
+        description: 'Adds a new product to the MySQL database. An `id` is assigned automatically.',
         requestBody: {
           required: true,
           content: {
@@ -88,7 +88,7 @@ const swaggerSpec = {
             }
           },
           400: {
-            description: 'Missing required fields',
+            description: 'Missing or invalid fields',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ErrorResponse' },
@@ -173,7 +173,7 @@ const swaggerSpec = {
           required: true,
           content: {
             'application/json': {
-              schema: { $ref: '#/components/schemas/ProductInput' },
+              schema: { $ref: '#/components/schemas/ProductUpdate' },
               example: {
                 price: 175000,
                 description: 'Deskripsi yang sudah diperbarui.'
@@ -203,7 +203,7 @@ const swaggerSpec = {
             }
           },
           400: {
-            description: 'Request body cannot be empty',
+            description: 'Request body is empty or invalid',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ErrorResponse' },
@@ -227,7 +227,7 @@ const swaggerSpec = {
       delete: {
         tags: ['Products'],
         summary: 'Delete a product by ID',
-        description: 'Removes a product from the in-memory store permanently. Data will be restored on server restart.',
+        description: 'Removes a product and all its variants from the MySQL database permanently.',
         parameters: [
           {
             name: 'id',
@@ -305,10 +305,37 @@ const swaggerSpec = {
         }
       },
 
-      // Input schema for POST and PUT (id is excluded — assigned automatically)
+      // Input schema for POST (id is excluded — assigned automatically)
       ProductInput: {
         type: 'object',
         required: ['name', 'price', 'image', 'variants', 'description'],
+        properties: {
+          name: {
+            type: 'string',
+            example: 'Nama Product'
+          },
+          price: {
+            type: 'number',
+            example: 150000
+          },
+          image: {
+            type: 'string',
+            example: 'https://placehold.co/600x400/png'
+          },
+          variants: {
+            type: 'array',
+            items: { $ref: '#/components/schemas/Variant' }
+          },
+          description: {
+            type: 'string',
+            example: 'Deskripsi singkat product...'
+          }
+        }
+      },
+
+      // Input schema for PUT (partial update — every field is optional)
+      ProductUpdate: {
+        type: 'object',
         properties: {
           name: {
             type: 'string',
