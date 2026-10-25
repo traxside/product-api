@@ -1,39 +1,124 @@
 # Product API
 
-REST API sederhana untuk manajemen data produk e-commerce. Dibangun menggunakan Node.js dan Express.js dengan penyimpanan data secara in-memory.
+REST API sederhana untuk manajemen data produk e-commerce. Dibangun menggunakan Node.js dan Express.js dengan penyimpanan data di MySQL.
 
 ## Tech Stack
 
 - **Runtime:** Node.js
 - **Framework:** Express.js
 - **Module System:** ESM (`import/export`)
+- **Database:** MySQL
+- **MySQL Driver:** mysql2 (promise-based)
+- **Env Config:** dotenv
 - **API Documentation:** swagger-ui-express
-- **Data Storage:** In-memory JavaScript array (tidak menggunakan database)
 
-## Cara Menjalankan
+## Prerequisites
 
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
+Pastikan sudah terinstall di mesin lokal sebelum memulai:
 
-2. Jalankan server:
-   ```bash
-   node index.js
-   ```
+- [Node.js](https://nodejs.org/) (v18 atau lebih baru)
+- [MySQL](https://dev.mysql.com/downloads/) (v5.7 atau lebih baru) — server harus berjalan
 
-3. Server berjalan di: `http://localhost:3000`
+## Getting Started
 
-> **Catatan:** Data bersifat in-memory — seluruh perubahan (POST, PUT, DELETE) akan hilang saat server di-restart.
+Ikuti langkah-langkah berikut untuk menjalankan project dari awal:
 
-## Dokumentasi Interaktif (Swagger UI)
+**1. Clone repository**
+```bash
+git clone <repository-url>
+cd product-api
+```
 
-Buka browser dan akses:
+**2. Install dependencies**
+```bash
+npm install
+```
+
+**3. Buat database MySQL**
+
+Login ke MySQL dan jalankan perintah berikut:
+```sql
+CREATE DATABASE product_db;
+```
+
+**4. Konfigurasi environment variables**
+
+Salin file template `.env.example` menjadi `.env`:
+```bash
+cp .env.example .env
+```
+
+Lalu buka `.env` dan isi dengan kredensial MySQL kamu:
+```
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=your_password
+DB_NAME=product_db
+```
+
+**5. Jalankan seed script** (hanya perlu dilakukan sekali)
+
+Script ini akan membuat tabel `products` dan `variants`, lalu mengisi 2 produk demo:
+```bash
+node seed.js
+```
+
+Output yang diharapkan:
+```
+Creating tables...
+✓ products table ready
+✓ variants table ready
+Inserting demo data...
+✓ Product 1 inserted (id: 1)
+✓ Product 2 inserted (id: 2)
+
+Seeding complete! You can now start the server with: node src/index.js
+```
+
+**6. Jalankan server**
+```bash
+node src/index.js
+```
+
+Server berjalan di: `http://localhost:3000`
+
+**7. Buka Swagger UI**
+
 ```
 http://localhost:3000/api-docs
 ```
 
-Swagger UI menyediakan dokumentasi interaktif lengkap. Setiap endpoint dapat langsung diuji dari halaman ini menggunakan fitur **"Try it out"**.
+Swagger UI menyediakan dokumentasi interaktif lengkap. Setiap endpoint dapat langsung diuji menggunakan fitur **"Try it out"**.
+
+> **Catatan:** Data bersifat persisten — perubahan (POST, PUT, DELETE) akan tetap ada setelah server di-restart karena disimpan di database MySQL.
+
+---
+
+## Database Schema
+
+Data produk disimpan dalam dua tabel yang saling berelasi:
+
+### Tabel `products`
+
+| Kolom         | Tipe             | Keterangan                        |
+|---------------|------------------|-----------------------------------|
+| `id`          | INT (PK, AUTO)   | ID unik produk                    |
+| `name`        | VARCHAR(255)     | Nama produk                       |
+| `price`       | DECIMAL(15, 2)   | Harga produk dalam IDR            |
+| `image`       | VARCHAR(500)     | URL gambar produk                 |
+| `description` | TEXT             | Deskripsi singkat produk          |
+
+### Tabel `variants`
+
+| Kolom         | Tipe             | Keterangan                                    |
+|---------------|------------------|-----------------------------------------------|
+| `id`          | INT (PK, AUTO)   | ID unik variant                               |
+| `product_id`  | INT (FK)         | Referensi ke `products(id)` — CASCADE DELETE  |
+| `colorOrSize` | VARCHAR(100)     | Label ukuran (S, M, L) atau nama warna        |
+| `quantity`    | INT              | Jumlah stok untuk variasi ini                 |
+
+Relasi: satu produk memiliki banyak variants (one-to-many). Menghapus produk akan otomatis menghapus semua variants-nya.
 
 ---
 
@@ -52,8 +137,6 @@ Swagger UI menyediakan dokumentasi interaktif lengkap. Setiap endpoint dapat lan
 ## Contoh Request & Response
 
 ### GET /api/products
-
-Mengambil seluruh daftar produk.
 
 **Request:**
 ```
@@ -93,8 +176,6 @@ GET http://localhost:3000/api/products
 
 ### GET /api/products/:id
 
-Mengambil satu produk berdasarkan ID.
-
 **Request:**
 ```
 GET http://localhost:3000/api/products/1
@@ -124,8 +205,6 @@ GET http://localhost:3000/api/products/1
 ---
 
 ### POST /api/products
-
-Membuat produk baru. ID di-assign otomatis oleh server.
 
 **Request:**
 ```
@@ -169,7 +248,7 @@ Content-Type: application/json
 
 ### PUT /api/products/:id
 
-Memperbarui produk yang sudah ada. Mendukung **partial update** — hanya field yang dikirim yang akan diperbarui, field lain tetap tidak berubah.
+Mendukung **partial update** — hanya field yang dikirim yang akan diperbarui. Jika `variants` disertakan, seluruh variants akan diganti dengan yang baru.
 
 **Request:**
 ```
@@ -215,8 +294,6 @@ Content-Type: application/json
 
 ### DELETE /api/products/:id
 
-Menghapus produk berdasarkan ID.
-
 **Request:**
 ```
 DELETE http://localhost:3000/api/products/1
@@ -238,7 +315,7 @@ DELETE http://localhost:3000/api/products/1
 
 | Field         | Tipe     | Keterangan                                         |
 |---------------|----------|----------------------------------------------------|
-| `id`          | integer  | ID unik produk, di-assign otomatis oleh server     |
+| `id`          | integer  | ID unik produk, di-assign otomatis oleh MySQL      |
 | `name`        | string   | Nama produk                                        |
 | `price`       | number   | Harga produk dalam IDR                             |
 | `image`       | string   | URL gambar produk                                  |
